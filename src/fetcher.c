@@ -17,8 +17,13 @@ char* fetch_http(const char *host, const char *path) {
 
     char request[1024];
     snprintf(request, sizeof(request),
-             "GET %s HTTP/1.0\r\nHost: %s\r\nConnection: close\r\n\r\n",
-             path, host);
+    "GET %s HTTP/1.1\r\n"
+    "Host: %s\r\n"
+    "User-Agent: Mozilla/5.0 (compatible; CrawlLabBot/1.0)\r\n"
+    "Accept: */*\r\n"
+    "Accept-Language: en-US,en;q=0.9\r\n"
+    "Connection: close\r\n\r\n",
+    path, host);
 
     if (!socket_send_all(sockfd, request, strlen(request))) {
         socket_close(sockfd);
@@ -104,10 +109,13 @@ char* fetch_https(const char *host, const char *path) {
 
     char req[1024];
     snprintf(req, sizeof(req),
-             "GET %s HTTP/1.1\r\n"
-             "Host: %s\r\n"
-             "Connection: close\r\n\r\n",
-             path, host);
+    "GET %s HTTP/1.1\r\n"
+    "Host: %s\r\n"
+    "User-Agent: Mozilla/5.0 (compatible; CrawlLabBot/1.0)\r\n"
+    "Accept: */*\r\n"
+    "Accept-Language: en-US,en;q=0.9\r\n"
+    "Connection: close\r\n\r\n",
+    path, host);
 
     if (SSL_write(ssl, req, strlen(req)) <= 0) {
         SSL_shutdown(ssl);

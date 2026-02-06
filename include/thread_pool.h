@@ -15,11 +15,11 @@ typedef struct {
     queue_t local_queue;
     thread_pool_t *global_pool;
 } worker_ctx_t;
-
 struct thread_pool {
     worker_ctx_t *worker;
     int capacity;
     hash_table_t* visited;
+    hash_table_t* domain;
     bool shutdown;
 };
 void create_thread(pthread_t * thread , worker_ctx_t * ctx);

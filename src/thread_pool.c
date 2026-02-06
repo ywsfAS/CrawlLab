@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include "../include/thread_pool.h"
 #include "../include/crawler.h"
+#include "../include/stats.h"
 
 void *worker_main(void *arg);
 
@@ -20,7 +21,6 @@ void create_thread(pthread_t *thread, worker_ctx_t *ctx) {
     pthread_attr_destroy(&attr);
 }
 
-
 void create_worker(thread_pool_t *pool, worker_ctx_t *worker,
                    int id, int queue_capacity) {
     queue_init(&worker->local_queue);
@@ -30,18 +30,19 @@ void create_worker(thread_pool_t *pool, worker_ctx_t *worker,
 }
 
 
+
 bool steal_job(thread_pool_t *pool, int self_id, job_t *out) {
-    for (int i = 0; i < pool->capacity; i++) {
+    for (int i= 1; i < pool->capacity; i++) {
         if (i == self_id) continue;
 
         worker_ctx_t *victim = &pool->worker[i];
-        if(steal_queue(&victim->local_queue,out)){
+        if (steal_queue(&victim->local_queue, out)) {
+            printf("Worker %d stole from worker %d\n", self_id, i);
             return true;
         }
     }
     return false;
 }
-
 
 
 void *worker_main(void *arg) {
@@ -56,13 +57,15 @@ void *worker_main(void *arg) {
             test_task(arg);
             job.func(job.args);
             free(task);
+            stats_inc(&stats.jobs_completed , &stats.lock);
             continue;
         }
         // Try stealing from other local queues
         if (steal_job(worker->global_pool, worker->id, &job)) {
             job.func(job.args);
-            free(task);
-            
+            printf("[Thread %d] stole a job\n", worker->id);
+            stats_inc(&stats.jobs_stolen , &stats.lock);
+            stats_inc(&stats.jobs_completed , &stats.lock);
             continue;
         }
 
@@ -91,6 +94,7 @@ void submit_job(worker_ctx_t *worker, job_t job)
 
     // there is space → push job
     queue_push(q, j);
+     stats_inc(&stats.jobs_submitted , &stats.lock);
     pthread_cond_signal(&q->cv);  // wake a worker
 
     pthread_mutex_unlock(&q->lock);
@@ -102,6 +106,7 @@ void thread_pool_init(thread_pool_t *pool,
                       int queue_capacity) {
     pool->capacity = workers_num;
     pool->visited = hash_table_create(4000,hash);
+    pool->domain = hash_table_create(4000,hash);
     pool->shutdown = false;
     pool->worker = malloc(sizeof(worker_ctx_t) * workers_num);
 
@@ -126,6 +131,7 @@ void thread_pool_destroy(thread_pool_t * pool){
         pthread_join(pool->worker[i].thread,NULL);
     }
     hash_table_destroy(pool->visited);
+    hash_table_destroy(pool->domain);
     for(int i = 0 ; i < pool->capacity ; i++){
         queue_destroy(&pool->worker[i].local_queue);
     }

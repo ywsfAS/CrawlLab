@@ -339,7 +339,7 @@ int connect_to_server(const char* ip, const char* port_str) {
     hints.ai_socktype = SOCK_STREAM;
 
     if (getaddrinfo(ip, port_str, &hints, &res) != 0)
-        fatal_error(ERR_SOCKET_CONNECT, "getaddrinfo() failed");
+        error(ERR_SOCKET_CONNECT, "getaddrinfo() failed");
 
     for (p = res; p != NULL; p = p->ai_next) {
         sockfd = socket_create(p->ai_family, p->ai_socktype);
@@ -354,7 +354,7 @@ int connect_to_server(const char* ip, const char* port_str) {
     freeaddrinfo(res);
 
     if (sockfd < 0)
-        fatal_error(ERR_SOCKET_CONNECT, "Unable to connect to server");
+        error(ERR_SOCKET_CONNECT, "Unable to connect to server");
 
     return sockfd;
 }
