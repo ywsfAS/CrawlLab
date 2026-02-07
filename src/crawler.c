@@ -8,7 +8,6 @@ void crawl_job(void *arg)
 
     crawl_arg_t *data = arg;
     if(data->depth > MAX_DEPTH) {
-        printf("Readched Max Depth \n");
         free(data->url);
         free(data);
         return;
