@@ -2,6 +2,7 @@
 #define STATS_HI
 #include <pthread.h>
 #include <stdatomic.h>
+#include "config.h"
 typedef struct {
     long urls_discovered;
     long urls_visited;
@@ -22,7 +23,7 @@ typedef struct {
 } crawler_stats_t;
 
 extern crawler_stats_t stats;
-extern atomic_int thread_job_count[8];
+extern atomic_int thread_job_count[WORKERS];
 void stats_init(crawler_stats_t * stats);
 void stats_destroy(crawler_stats_t * stats);
 void stats_inc(long * value , pthread_mutex_t * lock);
