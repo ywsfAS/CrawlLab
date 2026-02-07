@@ -5,6 +5,8 @@ The project focuses on low-level networking, concurrency, synchronization, and s
 
 It fetches web pages, extracts links, avoids duplicates, and distributes work across threads using a work-stealing thread pool.
 
+---
+
 ## Features Implemented
 
 ### HTTP Page Fetching
@@ -53,30 +55,35 @@ It fetches web pages, extracts links, avoids duplicates, and distributes work ac
 - Supports concurrent producers and consumers
 - Condition variable based blocking
 
+---
+
 ## Project Structure
 
+```
 CrawlLab/
 ├─ include/
-│ ├─ config.h
-│ ├─ error.h
-│ ├─ hash_table.h
-│ ├─ normalizer.h
-│ ├─ socket.h
-│ ├─ task_queue.h
-│ ├─ visited_set.h
-│ ├─ crawler.h
-│ ├─ fetcher.h
-│ ├─ job.h
-│ ├─ parser.h
-│ ├─ stats.h
-│ └─ thread_pool.h
+│  ├─ config.h
+│  ├─ error.h
+│  ├─ hash_table.h
+│  ├─ normalizer.h
+│  ├─ socket.h
+│  ├─ task_queue.h
+│  ├─ visited_set.h
+│  ├─ crawler.h
+│  ├─ fetcher.h
+│  ├─ job.h
+│  ├─ parser.h
+│  ├─ stats.h
+│  └─ thread_pool.h
+│
 ├─ src/
-│ ├─ crawler.c
-│ ├─ fetcher.c
-│ ├─ main.c
-│ ├─ parser.c
-│ ├─ stats.c
-│ └─ thread_pool.c
+│  ├─ crawler.c
+│  ├─ fetcher.c
+│  ├─ main.c
+│  ├─ parser.c
+│  ├─ stats.c
+│  └─ thread_pool.c
+│
 ├─ CRAWLED_HTML/
 ├─ CRAWLED_ROBOTS/
 ├─ build/
@@ -84,84 +91,108 @@ CrawlLab/
 ├─ LICENSE
 ├─ Makefile
 └─ README.md
+```
+
+---
 
 ## Build and Run Instructions
 
-1. Clean previous builds:
+Clean previous builds:
+
+```
 make clean
-2. Build all binaries and prepare folders:
+```
+
+Build all binaries and prepare folders:
+
+```
 make all
-3. Run the crawler:
+```
+
+Run the crawler:
+
+```
 make run
+```
+
+---
+
 ## Configuration
 
-All project constants and macros are defined in include/config.h, including:
+All project constants and macros are defined in:
 
-WORKERS
+```
+include/config.h
+```
 
-TEST_RUNTIME_SEC
+Including:
 
-STACK_SIZE_THREAD
-
-HASH_MAP_SIZE
-
-MAX_DEPTH
-
-ROBOTS_DIR
-
-HTNL_DIR
+- WORKERS  
+- TEST_RUNTIME_SEC  
+- STACK_SIZE_THREAD  
+- HASH_MAP_SIZE  
+- MAX_DEPTH  
+- ROBOTS_DIR  
+- HTML_DIR  
 
 You can edit this file to adjust crawler behavior.
+
+---
 
 ## Statistics
 
 After running, the crawler prints:
 
-URLs discovered
-
-URLs visited
-
-Pages fetched OK / failed
-
-Robots.txt fetched
-
-Duplicate links filtered
-
-Jobs submitted, completed, and stolen
-
-Per-thread job counts
+- URLs discovered
+- URLs visited
+- Pages fetched OK / failed
+- Robots.txt fetched
+- Duplicate links filtered
+- Jobs submitted, completed, and stolen
+- Per-thread job counts
 
 This allows tracking the efficiency of the work-stealing scheduler and thread pool.
+
+---
+
 ## Output Directories
 
-CRAWLED_HTML
+### CRAWLED_HTML
 
-Stores downloaded HTML pages.
-Each file is named using a sanitized version of the URL.
+Stores downloaded HTML pages. Each file is named using a sanitized version of the URL.
 
 Example:
 
+```
 CRAWLED_HTML/
- ├─ https___github.com
- ├─ https___github.com_features
- ├─ https___docs.github.com
+├─ https___github.com
+├─ https___github.com_features
+├─ https___docs.github.com
+```
 
-CRAWLED_ROBOTS
+---
+
+### CRAWLED_ROBOTS
 
 Stores robots.txt files fetched per domain.
 
 Example:
 
+```
 CRAWLED_ROBOTS/
- ├─ https___github.com
- ├─ https___docs.github.com
+├─ https___github.com
+├─ https___docs.github.com
+```
+
+---
 
 ## Statistics Output
 
 After crawling, the program prints runtime statistics.
 
-Example Output
+### Example Output
 
+```
 ========== CRAWLER STATISTICS ==========
 URLs Discovered      : 27822
 URLs Visited         : 506
@@ -187,13 +218,16 @@ Thread 4 executed 95 tasks
 Thread 5 executed 93 tasks
 Thread 6 executed 81 tasks
 Thread 7 executed 95 tasks
+```
+
+---
+
+## Performance Insights
 
 These metrics help evaluate:
 
-Crawling efficiency
+- Crawling efficiency
+- Work-stealing effectiveness
+- Thread load balancing
+- Duplicate filtering performance
 
-Work-stealing effectiveness
-
-Thread load balancing
-
-Duplicate filtering performance
