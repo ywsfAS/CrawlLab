@@ -1,5 +1,6 @@
 #include "../include/stats.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 void stats_inc(long *value,pthread_mutex_t *lock){
     pthread_mutex_lock(lock);
@@ -51,6 +52,7 @@ void print_crawler_stats(crawler_stats_t stats){
   }
 
 void save_stats_csv(crawler_stats_t stats) {
+    
     FILE *f = fopen("crawler_stats.csv", "w");
     if (!f) return;
 
@@ -67,5 +69,39 @@ void save_stats_csv(crawler_stats_t stats) {
     fprintf(f, "Jobs Completed,%d\n", stats.jobs_completed);
     fprintf(f, "Jobs Stolen,%d\n", stats.jobs_stolen);
     fclose(f);
+}
+void sanitize_filename(char * str){
+    // str should be null terminated !
+    for(int i = 0 ; str[i] ; i++){
+        if (str[i] == '/' || str[i] == ':' || str[i] == '?' || str[i] == '&' || str[i] == '=')
+        str[i] = '_';
+    }
+
+}
+
+
+int save_to_file(const char * dir ,const char *filename, const char *content)
+{
+    char safe_filename[400];
+    strncpy(safe_filename,filename,sizeof(safe_filename) - 1);
+    sanitize_filename(safe_filename);
+    char fullpath[400];
+    
+    snprintf(fullpath,sizeof(fullpath) ,"%s/%s",dir,safe_filename);
+    FILE *file = fopen(fullpath, "w");
+    if (!file)
+    {
+        return 0;
+    }
+
+    if (fputs(content, file) == EOF)
+    {
+        perror("write failed");
+        fclose(file);
+        return 0;
+    }
+
+    fclose(file);
+    return 1;
 }
  

@@ -19,14 +19,11 @@ bool is_queue_full(queue_t * queue ){
   return false;
 }
 bool queue_push(queue_t * queue ,void * obj){
-  //pthread_mutex_lock(&queue->lock);
   if( (queue->tail + 1) % queue->capacity == queue->head){
       return false;
   }
   queue->queue[queue->tail] = obj;
   queue->tail = (queue->tail + 1) % queue->capacity; 
-  //pthread_cond_signal(&queue->cv);
-  //pthread_mutex_unlock(&queue->lock);
   return true;
 }
 void * queue_pop(queue_t * queue){

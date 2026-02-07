@@ -1,17 +1,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <stdatomic.h>
 #include "../include/thread_pool.h"
 #include "../include/crawler.h"
 #include "../include/stats.h"
-
+#include "../include/config.h"
 void *worker_main(void *arg);
 
 
 void create_thread(pthread_t *thread, worker_ctx_t *ctx) {
     pthread_attr_t attr;
     pthread_attr_init(&attr);
-    //pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     pthread_attr_setstacksize(&attr, STACK_SIZE_THREAD);
 
     if (pthread_create(thread, &attr, worker_main, ctx) != 0) {
@@ -32,12 +32,11 @@ void create_worker(thread_pool_t *pool, worker_ctx_t *worker,
 
 
 bool steal_job(thread_pool_t *pool, int self_id, job_t *out) {
-    for (int i= 1; i < pool->capacity; i++) {
+    for (int i= 0; i < pool->capacity; i++) {
         if (i == self_id) continue;
 
         worker_ctx_t *victim = &pool->worker[i];
         if (steal_queue(&victim->local_queue, out)) {
-            printf("Worker %d stole from worker %d\n", self_id, i);
             return true;
         }
     }
@@ -54,16 +53,16 @@ void *worker_main(void *arg) {
 
         if(task != NULL){
             job = *(job_t *)task; 
-            test_task(arg);
             job.func(job.args);
             free(task);
+            atomic_fetch_add(&thread_job_count[worker->id], 1);
             stats_inc(&stats.jobs_completed , &stats.lock);
             continue;
         }
         // Try stealing from other local queues
         if (steal_job(worker->global_pool, worker->id, &job)) {
             job.func(job.args);
-            printf("[Thread %d] stole a job\n", worker->id);
+            atomic_fetch_add(&thread_job_count[worker->id], 1);
             stats_inc(&stats.jobs_stolen , &stats.lock);
             stats_inc(&stats.jobs_completed , &stats.lock);
             continue;
@@ -105,8 +104,8 @@ void thread_pool_init(thread_pool_t *pool,
                       int workers_num,
                       int queue_capacity) {
     pool->capacity = workers_num;
-    pool->visited = hash_table_create(4000,hash);
-    pool->domain = hash_table_create(4000,hash);
+    pool->visited = hash_table_create(HASH_MAP_SIZE,hash);
+    pool->domain = hash_table_create(HASH_MAP_SIZE,hash);
     pool->shutdown = false;
     pool->worker = malloc(sizeof(worker_ctx_t) * workers_num);
 

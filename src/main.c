@@ -2,17 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
+#include <stdatomic.h>
 #include "../include/thread_pool.h"
 #include "../include/crawler.h"
 #include "../include/visited_set.h"
 #include "../include/stats.h"
+#include "../include/config.h"
 
-#define WORKERS 4
-#define URL_SEED "https://github.com"
-#define QUEUE_CAP 640
-#define TEST_RUNTIME_SEC  (60)   // how long crawler runs (for testing)
 crawler_stats_t stats;
+atomic_int thread_job_count[WORKERS];
 int main()
 {
     printf("===== Crawler Test Start =====\n");
@@ -53,6 +51,11 @@ int main()
 
     printf("===== Crawler Test End =====\n");
     print_crawler_stats(stats);
+    printf("========= Thread Job Counts =========\n");
+    for (int i = 0; i < WORKERS; i++) {
+        printf("Thread %d executed %d tasks\n", i, atomic_load(&thread_job_count[i]));
+    }
+
     save_stats_csv(stats);
     stats_destroy(&stats);
     return 0;

@@ -23,6 +23,8 @@ void crawl_job(void *arg)
         free(data);
         return;
     }
+    // save html
+    save_to_file(HTML_DIR,url,html);
     stats_inc(&stats.urls_visited , &stats.lock);
     stats_inc(&stats.pages_success , &stats.lock);
     char * domain = extract_base(url);
@@ -38,6 +40,7 @@ void crawl_job(void *arg)
         if(robots){
             stats_inc(&stats.robots_fetched , &stats.lock);
             parse_robots(&disallow,robots);
+            save_to_file(ROBOTS_DIR,domain,robots);
             free(robots);
         }else{
             printf("No robots.txt to fetch !\n");
